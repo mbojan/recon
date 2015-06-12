@@ -1,0 +1,11 @@
+Package: recon
+Title: Functions and Data Related to Project RECON at ICM UW
+Version: 0.0-1
+Authors@R: person("Michal", "Bojanowski", email = "michal2992@gmail.com", role = c("aut", "cre"))
+Description: RECON is a research project on competition and collaboration in science.
+	This package contains some utilities devloped for research purposes.
+URL: https://github.com/mbojan/recon,http://recon.icm.edu.pl
+Depends: R (>= 3.2.0)
+Imports: gspreadsheet
+License: GPL-2
+LazyData: true
