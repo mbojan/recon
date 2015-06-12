@@ -6,6 +6,6 @@ Description: RECON is a research project on competition and collaboration in sci
 	This package contains some utilities devloped for research purposes.
 URL: https://github.com/mbojan/recon,http://recon.icm.edu.pl
 Depends: R (>= 3.2.0)
-Imports: gspreadsheet
+Imports: googlesheets
 License: GPL-2
 LazyData: true
