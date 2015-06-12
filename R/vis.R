@@ -9,31 +9,33 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' library(googlesheets)
 #' gs_auth()
 #' vis("WF01")
+#' }
 vis <- function(sheet)
 {
   # Wczytanie
   obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
-  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=cell_limits(rows=c(2,NA), cols=c(1,7))))
+  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,7))))
   names(d) <- c("ego", "kolor", "ksztalt", "frame", "grupa", "wspolpracownicy", "boss")
   # fix adjlists
   vnames <- c("grupa", "wspolpracownicy", "boss")
   d[vnames] <- lapply(d[vnames], function(x) gsub(" *, *", ",", x))
   # wspolpraca
   adjlist_wspolpraca <- lapply(strsplit(d$wspolpracownicy, ","), as.numeric)
-  g <- simplify(igraph::graph.edgelist(alist_to_elist(d$ego, adjlist_wspolpraca), directed=TRUE))
+  g <- igraph::simplify(igraph::graph.edgelist(alist_to_elist(d$ego, adjlist_wspolpraca), directed=TRUE))
   # master-slave
   boss_adjlist <- lapply(strsplit(d$boss, ","), as.numeric)
   g <- igraph::add.edges(g, t(alist_to_elist(d$ego, boss_adjlist)), attr=list(boss=TRUE))
   igraph::E(g)$boss <- !is.na(igraph::E(g)$boss)
   # kolor
   pal <- scales::brewer_pal(type="qual", palette=2)(length(unique(d$kolor)))
-  V(g)$color <- pal[d$kolor]
+  igraph::V(g)$color <- pal[d$kolor]
   # shape
   shps <- c("circle", "square")
-  V(g)$shape <- shps[d$ksztalt]
+  igraph::V(g)$shape <- shps[d$ksztalt]
   # grupy
   l <- strsplit(d$grupa, ",")
   u <- na.omit(unique(unlist(l)))
