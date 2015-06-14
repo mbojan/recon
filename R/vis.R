@@ -10,7 +10,8 @@
 #' @export
 vis <- function(sheet, ...)
 {
-  g <- make_net(sheet=sheet)
+  d <- get_data(sheet)
+  g <- make_net(d)
   vis_net(g, ...)
 }
 
@@ -19,14 +20,12 @@ vis <- function(sheet, ...)
 
 #' \code{make_net} downloads data and creates network object
 #'
+#' @param d data frame downloaded from GS
+#'
 #' @rdname vis
 #' @export
-make_net <- function(sheet)
+make_net <- function(d)
 {
-  # Wczytanie
-  obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
-  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,7))))
-  names(d) <- c("ego", "kolor", "ksztalt", "frame", "grupa", "wspolpracownicy", "boss")
   # fix adjlists
   vnames <- c("grupa", "wspolpracownicy", "boss")
   d[vnames] <- lapply(d[vnames], function(x) gsub("[^0-9,]", "", x))
@@ -34,11 +33,11 @@ make_net <- function(sheet)
   adjlist_wspolpraca <- lapply(strsplit(d$wspolpracownicy, ","), as.numeric)
   vdb <- subset(d, select=c("ego", "kolor", "ksztalt", "frame"))
   edb <- alist_to_elist(d$ego, adjlist_wspolpraca)
-  edb$typ <- "wspolpraca"
+  edb$typ <- rep("wspolpraca", nrow(edb))
   # master-slave
   boss_adjlist <- lapply(strsplit(d$boss, ","), as.numeric)
   bossedb <- as.data.frame(alist_to_elist(d$ego, boss_adjlist))
-  bossedb$typ <- "boss"
+  bossedb$typ <- rep("boss", nrow(bossedb))
   edb <- rbind(edb, bossedb)
   rval <- igraph::graph.data.frame(edb, vertices=vdb, directed=TRUE)
   igraph::V(rval)$grupa <- d$grupa
@@ -47,10 +46,20 @@ make_net <- function(sheet)
 
 
 
+get_data <- function(sheet)
+{
+  # Wczytanie
+  obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
+  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,7))))
+  names(d) <- c("ego", "kolor", "ksztalt", "frame", "grupa", "wspolpracownicy", "boss")
+  d
+}
+
+
 
 #' \code{vis_net} draws created network object
 #'
-#' @param g network
+#' @param g igraph object
 #' @param vcol vertex color mapping
 #' @param vshape vertex shape mapping
 #' @param vframe vertex frame color mapping
@@ -98,6 +107,39 @@ vis_net <- function(g,
                       vertex.frame.color=vframe[igraph::V(gw)$frame] )
 }
 
+
+
+
+
+#' \code{vis_all} visualizes all networks and saves them to files 'XXXX.png'
+#'
+#' @param sheet_names names of GS sheet names to visualize
+#
+#' @rdname vis
+#' @export
+vis_all <- function(sheet_names=NULL)
+{
+  if(is.null(sheet_names))
+    sheet_names <- c( paste0("WF", sprintf("%02d", 1:15)),
+                     paste("DC", sprintf("%02d", 1:15)) )
+  obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
+  for( sheet in sheet_names )
+  {
+    d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,7))))
+    g <- make_net(d)
+    op <- par(mar=c(1,1,1,1))
+    on.exit(par(op))
+    png(paste0(sheet, ".png"))
+    cat("Drawing", sheet, "...")
+    r <- try(vis_net(g))
+    if(inherits(r, "try-error")) {
+      cat("ERROR!\n")
+    } else {
+      cat("DONE\n")
+    }
+    dev.off()
+  }
+}
 
 
 

@@ -2,5 +2,6 @@
 
 export(make_net)
 export(vis)
+export(vis_all)
 export(vis_net)
 import(igraph)

@@ -3,23 +3,28 @@
 \name{vis}
 \alias{make_net}
 \alias{vis}
+\alias{vis_all}
 \alias{vis_net}
 \title{Visualise team networks}
 \usage{
 vis(sheet, ...)
 
-make_net(sheet)
+make_net(d)
 
 vis_net(g, vcol = c("#e41a1c", "#ffff33", "#377eb8", "white"),
   vshape = c("circle", "square"), vframe = c("black", "#4daf4a"),
   gcol = RColorBrewer::brewer.pal(8, "Set3"), ggroups = TRUE)
+
+vis_all(sheet_names = NULL)
 }
 \arguments{
 \item{sheet}{sheet name}
 
 \item{...}{other arguments passed to \code{vis_net}}
 
-\item{g}{network}
+\item{d}{data frame downloaded from GS}
+
+\item{g}{igraph object}
 
 \item{vcol}{vertex color mapping}
 
@@ -30,6 +35,8 @@ vis_net(g, vcol = c("#e41a1c", "#ffff33", "#377eb8", "white"),
 \item{gcol}{vertex group color mapping}
 
 \item{ggroups}{whether to take groups into account when calculating layout}
+
+\item{sheet_names}{names of GS sheet names to visualize}
 }
 \description{
 Download and visualize team networks based on data in a Google Spreadsheet.
@@ -37,6 +44,8 @@ Download and visualize team networks based on data in a Google Spreadsheet.
 \code{make_net} downloads data and creates network object
 
 \code{vis_net} draws created network object
+
+\code{vis_all} visualizes all networks and saves them to files 'XXXX.png'
 }
 \details{
 Needs authorisation with \code{gs_auth()} first.
