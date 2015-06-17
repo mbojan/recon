@@ -11,11 +11,11 @@ vis(sheet, ...)
 
 make_net(d)
 
-vis_net(g, vcol = c("#e41a1c", "#ffff33", "#377eb8", "white"),
-  vshape = c("circle", "square"), vframe = c("black", "#4daf4a"),
-  gcol = RColorBrewer::brewer.pal(8, "Set3"), ggroups = TRUE)
+vis_net(g, vid = V(g), gid = "all", vcol = c("#e41a1c", "#ffff33",
+  "#377eb8", "white"), vshape = c("circle", "square"), vframe = c("black",
+  "#4daf4a"), gcol = RColorBrewer::brewer.pal(8, "Set3"), ggroups = TRUE)
 
-vis_all(sheet_names = NULL)
+vis_all(sheet_names = NULL, skip_sheets = NULL, overwrite = FALSE, ...)
 }
 \arguments{
 \item{sheet}{sheet name}
@@ -25,6 +25,10 @@ vis_all(sheet_names = NULL)
 \item{d}{data frame downloaded from GS}
 
 \item{g}{igraph object}
+
+\item{vid}{numeric ids of vertices to draw, all by default}
+
+\item{gid}{numeric ids of groups to draw or \code{"all"} (default), or \code{"none"}.}
 
 \item{vcol}{vertex color mapping}
 
@@ -36,14 +40,18 @@ vis_all(sheet_names = NULL)
 
 \item{ggroups}{whether to take groups into account when calculating layout}
 
-\item{sheet_names}{names of GS sheet names to visualize}
+\item{sheet_names}{names of GS sheet names to visualize, if \code{NULL} draws all \code{WF} and \code{DC} sheets with numbers 1 to 15. Single character element (e.g. \code{"WF"}) is interpreted as a regular expression to search through sheet names}
+
+\item{skip_sheets}{character vector, if \code{sheet_names} is \code{NULL}, sheets with these names will be skipped}
+
+\item{overwrite}{logical redo existing files}
 }
 \description{
 Download and visualize team networks based on data in a Google Spreadsheet.
 
-\code{make_net} downloads data and creates network object
+\code{make_net} downloads data and creates igraph object.
 
-\code{vis_net} draws created network object
+\code{vis_net} draws created igraph object.
 
 \code{vis_all} visualizes all networks and saves them to files 'XXXX.png'
 }

@@ -26,6 +26,10 @@ vis <- function(sheet, ...)
 #' @export
 make_net <- function(d)
 {
+  # drop all-NA rows
+  nas <- sapply(d, is.na)
+  allna <- apply(nas, 1, all)
+  d <- subset(d, !allna)
   # fix adjlists
   vnames <- c("grupa", "wspolpracownicy", "boss")
   d[vnames] <- lapply(d[vnames], function(x) gsub("[^0-9,]", "", x))
@@ -94,10 +98,12 @@ vis_net <- function(g,
   }
   # rys!
   igraph::V(g)$frame[ is.na(igraph::V(g)$frame) ] <- 1
+  igraph::V(g)$kolor[ is.na(igraph::V(g)$kolor) ] <- 1
+  igraph::V(g)$ksztalt[ is.na(igraph::V(g)$ksztalt) ] <- 1
   # add ties within groups just for layout comp
   if(ggroups && !identical(gid, "none"))
   {
-    memb <- sapply(l, function(x) u %in% x)
+    memb <- matrix(sapply(l, function(x) u %in% x), length(u), length(l))
     am <- t(memb) %*% memb
     colnames(am) <- rownames(am) <- seq(1, igraph::vcount(g))
     lg <- igraph::simplify(igraph::graph.union(g, igraph::graph.adjacency(am)))
@@ -131,16 +137,30 @@ vis_net <- function(g,
 
 #' \code{vis_all} visualizes all networks and saves them to files 'XXXX.png'
 #'
-#' @param sheet_names names of GS sheet names to visualize, if \code{NULL} draws all \code{WF} and \code{DC} sheets with numbers 1 to 15.
+#' @param sheet_names names of GS sheet names to visualize, if \code{NULL} draws all \code{WF} and \code{DC} sheets with numbers 1 to 15. Single character element (e.g. \code{"WF"}) is interpreted as a regular expression to search through sheet names
+#' @param skip_sheets character vector, if \code{sheet_names} is \code{NULL}, sheets with these names will be skipped
 #' @param overwrite logical redo existing files
-#
+#'
 #' @rdname vis
 #' @export
-vis_all <- function(sheet_names=NULL, overwrite=FALSE, ...)
+vis_all <- function(sheet_names=NULL, skip_sheets=NULL, overwrite=FALSE, ...)
 {
+  all_sheets <- c( paste0("WF", sprintf("%02d", 1:15)),
+                     paste0("DC", sprintf("%02d", 1:15)) )
   if(is.null(sheet_names))
-    sheet_names <- c( paste0("WF", sprintf("%02d", 1:15)),
-                     paste("DC", sprintf("%02d", 1:15)) )
+  {
+    sheet_names <- all_sheets
+    if(!is.null(skip_sheets))
+    {
+      w <- sheet_names %in% skip_sheets
+      sheet_names <- sheet_names[!w]
+    }
+  }
+  # regexp
+  if(is.character(sheet_names) && length(sheet_names) == 1)
+  {
+    sheet_names <- grep(sheet_names, all_sheets, value=TRUE)
+  }
   obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
   for( sheet in sheet_names )
   {
@@ -179,7 +199,12 @@ alist_to_elist <- function(ego, adjlist)
 {
   stopifnot( length(ego) == length(adjlist) )
   lens <- sapply(adjlist, length)
+  isna <- sapply(adjlist, function(x) all(is.na(x)))
+  empty <- lens == 1 & isna
+  ego <- ego[!empty]
+  adjlist <- adjlist[!empty]
+  lens <- lens[!empty]
   rval <- cbind(ego=rep(ego, lens), alter=unlist(adjlist))
-  isna <- apply(rval, 1, function(x) any(is.na(x)))
-  as.data.frame(rval[ !isna , ])
+  as.data.frame(rval)
 }
+
