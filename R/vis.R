@@ -18,7 +18,7 @@ vis <- function(sheet, ...)
 
 
 
-#' \code{make_net} downloads data and creates network object
+#' \code{make_net} downloads data and creates igraph object.
 #'
 #' @param d data frame downloaded from GS
 #'
@@ -34,7 +34,7 @@ make_net <- function(d)
   vdb <- subset(d, select=c("ego", "kolor", "ksztalt", "frame"))
   edb <- alist_to_elist(d$ego, adjlist_wspolpraca)
   edb$typ <- rep("wspolpraca", nrow(edb))
-  # master-slave
+  # slave-master
   boss_adjlist <- lapply(strsplit(d$boss, ","), as.numeric)
   bossedb <- as.data.frame(alist_to_elist(d$ego, boss_adjlist))
   bossedb$typ <- rep("boss", nrow(bossedb))
@@ -57,9 +57,11 @@ get_data <- function(sheet)
 
 
 
-#' \code{vis_net} draws created network object
+#' \code{vis_net} draws created igraph object.
 #'
 #' @param g igraph object
+#' @param vid numeric ids of vertices to draw, all by default
+#' @param gid numeric ids of groups to draw or \code{"all"} (default), or \code{"none"}.
 #' @param vcol vertex color mapping
 #' @param vshape vertex shape mapping
 #' @param vframe vertex frame color mapping
@@ -70,21 +72,30 @@ get_data <- function(sheet)
 #' @import igraph
 #' @export
 vis_net <- function(g, 
+                    vid=V(g),
+                    gid="all",
                     vcol=c("#e41a1c", "#ffff33", "#377eb8", "white"),
                     vshape=c("circle", "square"),
                     vframe=c("black", "#4daf4a"),
                     gcol = RColorBrewer::brewer.pal(8, "Set3"),
                     ggroups = TRUE )
 {
+  # subset if necessary
+  g <- induced.subgraph(g, vids=vid)
   # grupy
   l <- strsplit(igraph::V(g)$grupa, ",")
   u <- na.omit(unique(unlist(l)))
   grupy <- lapply(u, function(gid) which(sapply(l, function(x) gid %in% x)))
   names(grupy) <- u
+  # group selection
+  if(is.numeric(gid))
+  {
+    grupy <- grupy[as.character(gid)]
+  }
   # rys!
   igraph::V(g)$frame[ is.na(igraph::V(g)$frame) ] <- 1
   # add ties within groups just for layout comp
-  if(ggroups)
+  if(ggroups && !identical(gid, "none"))
   {
     memb <- sapply(l, function(x) u %in% x)
     am <- t(memb) %*% memb
@@ -96,10 +107,17 @@ vis_net <- function(g,
   }
   gb <- igraph::delete.edges(g, igraph::E(g)[typ != "boss"])
   gw <- igraph::simplify(igraph::as.undirected(igraph::delete.edges(g, igraph::E(g)[typ == "boss"])))
-  igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3,
-       edge.color="black", mark.groups=grupy, 
-       mark.col=adjustcolor(gcol[as.numeric(names(grupy))], alpha.f=0.3),
-       mark.border=adjustcolor(gcol[as.numeric(names(grupy))], alpha.f=1) )
+  # czy rysujemy jakieś grupy
+  if(identical(gid, "none"))
+  {
+    igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3,
+                        edge.color="black")
+  } else {
+    igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3,
+         edge.color="black", mark.groups=grupy, 
+         mark.col=adjustcolor(gcol[as.numeric(names(grupy))], alpha.f=0.3),
+         mark.border=adjustcolor(gcol[as.numeric(names(grupy))], alpha.f=1) )
+  }
   igraph::plot.igraph(gw, layout=lay, add=TRUE, edge.color="red", edge.width=3,
                       vertex.color=vcol[igraph::V(gw)$kolor],
                       vertex.shape=vshape[igraph::V(gw)$ksztalt],
@@ -113,11 +131,12 @@ vis_net <- function(g,
 
 #' \code{vis_all} visualizes all networks and saves them to files 'XXXX.png'
 #'
-#' @param sheet_names names of GS sheet names to visualize
+#' @param sheet_names names of GS sheet names to visualize, if \code{NULL} draws all \code{WF} and \code{DC} sheets with numbers 1 to 15.
+#' @param overwrite logical redo existing files
 #
 #' @rdname vis
 #' @export
-vis_all <- function(sheet_names=NULL)
+vis_all <- function(sheet_names=NULL, overwrite=FALSE, ...)
 {
   if(is.null(sheet_names))
     sheet_names <- c( paste0("WF", sprintf("%02d", 1:15)),
@@ -125,18 +144,26 @@ vis_all <- function(sheet_names=NULL)
   obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
   for( sheet in sheet_names )
   {
+    cat("Sheet", sheet, "...\n")
+    fname <- paste0(sheet, ".png")
+    if(file.exists(fname) && !overwrite)
+    {
+      cat("SKIPPING\n")
+      next
+    }
+    cat("DRAWING ...\n")
     d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,7))))
+    names(d) <- c("ego", "kolor", "ksztalt", "frame", "grupa", "wspolpracownicy", "boss")
     g <- make_net(d)
+    png(fname)
     op <- par(mar=c(1,1,1,1))
-    on.exit(par(op))
-    png(paste0(sheet, ".png"))
-    cat("Drawing", sheet, "...")
-    r <- try(vis_net(g))
+    r <- try(vis_net(g, ...))
     if(inherits(r, "try-error")) {
       cat("ERROR!\n")
     } else {
       cat("DONE\n")
     }
+    par(op)
     dev.off()
   }
 }
