@@ -1,6 +1,17 @@
-#============================================================================ 
-# Additional vertex shapes
-#============================================================================ 
+#' Register custom vertex shapes
+#'
+#' Registers custom vertex shapes.
+#'
+#' @rdname register_vertex_shapes
+#' @export
+register_vertex_shapes <- function()
+{
+  # Register vertex shapes
+  add.vertex.shape("mbsquare", clip=vs_square_clip, plot=vs_square_plot,
+                   parameters=list(vertex.frame.width=1))
+  add.vertex.shape("mbcircle", clip=vs_circle_clip, plot=vs_circle_plot,
+                   parameters=list(vertex.frame.width=1))
+}
 
 
 
@@ -97,9 +108,6 @@ vs_square_plot <- function (coords, v = NULL, params)
             )
 }
 
-# Register
-add.vertex.shape("square", clip=vs_square_clip, plot=vs_square_plot,
-                 parameters=list(vertex.frame.width=1))
 
 
 #============================================================================ 
@@ -198,6 +206,7 @@ vs_circle_plot <- function (coords, v = NULL, params)
 }
 
 
-# Register
-add.vertex.shape("circle", clip=vs_circle_clip, plot=vs_circle_plot,
-                 parameters=list(vertex.frame.width=1))
+
+
+
+

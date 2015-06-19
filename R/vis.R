@@ -79,12 +79,13 @@ vis_net <- function(g,
                     vid=V(g),
                     gid="all",
                     vcol = c("#66c2a5", "yellow", "#8da0cb", "white"),
-                    vshape=c("circle", "square"),
+                    vshape=c("mbcircle", "mbsquare"),
                     vframe=c("black"=NA, "#e41a1c"=0, "#377eb8"=1),
                     gcol = RColorBrewer::brewer.pal(8, "Set3"),
                     ggroups = TRUE )
 {
   # subset if necessary
+  register_vertex_shapes()
   g <- induced.subgraph(g, vids=vid)
   # grupy
   l <- strsplit(igraph::V(g)$grupa, ",")
@@ -176,8 +177,8 @@ vis_all <- function(sheet_names=NULL, skip_sheets=NULL, overwrite=FALSE, ...)
       next
     }
     cat("DRAWING ...\n")
-    d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,7))))
-    names(d) <- c("ego", "kolor", "ksztalt", "frame", "grupa", "wspolpracownicy", "boss")
+    d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,8))))
+    names(d) <- c("ego", "kolor", "ksztalt", "kasa", "grupa", "wspolpracownicy", "boss", "plec")
     g <- make_net(d)
     png(fname)
     op <- par(mar=c(1,1,1,1))
