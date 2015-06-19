@@ -106,7 +106,7 @@ vis_net <- function(g,
   {
     memb <- matrix(sapply(l, function(x) u %in% x), length(u), length(l))
     am <- t(memb) %*% memb
-    colnames(am) <- rownames(am) <- seq(1, igraph::vcount(g))
+    colnames(am) <- rownames(am) <- V(g)$name
     lg <- igraph::simplify(igraph::graph.union(g, igraph::graph.adjacency(am)))
     lay <- igraph::layout.fruchterman.reingold(lg)
   } else {
