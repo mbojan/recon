@@ -118,10 +118,12 @@ vis_net <- function(g,
   if(identical(gid, "none"))
   {
     igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3, edge.width=2,
+                      vertex.size=ifelse(igraph::V(g)$kolor == 4, 25, 15),
                         edge.color="black")
   } else {
     igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3,
          edge.color="black", mark.groups=grupy, edge.width=2,
+                      vertex.size=ifelse(igraph::V(g)$kolor == 4, 25, 15),
          mark.col=adjustcolor(gcol[as.numeric(names(grupy))], alpha.f=0.3),
          mark.border=adjustcolor(gcol[as.numeric(names(grupy))], alpha.f=1) )
   }
@@ -129,7 +131,7 @@ vis_net <- function(g,
                       vertex.color=vcol[igraph::V(gw)$kolor],
                       vertex.shape=vshape[igraph::V(gw)$ksztalt],
                       vertex.size=ifelse(igraph::V(g)$kolor == 4, 25, 15),
-                      vertex.label.font=ifelse(igraph::V(g)$kasa == 1, 2, 1),
+                      vertex.label.color=ifelse(igraph::V(g)$kasa == 1, "red", "black"),
                       # vertex.label.family="sans",
                       vertex.frame.width=ifelse(is.na(V(g)$plec), 1, 4),
                       vertex.frame.color=nameplace(igraph::V(gw)$plec, vframe)
