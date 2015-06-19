@@ -11,9 +11,10 @@ vis(sheet, ...)
 
 make_net(d)
 
-vis_net(g, vid = V(g), gid = "all", vcol = c("#e41a1c", "#ffff33",
-  "#377eb8", "white"), vshape = c("circle", "square"), vframe = c("black",
-  "#4daf4a"), gcol = RColorBrewer::brewer.pal(8, "Set3"), ggroups = TRUE)
+vis_net(g, vid = V(g), gid = "all", vcol = c("#66c2a5", "yellow",
+  "#8da0cb", "white"), vshape = c("circle", "square"), vframe = c(black =
+  NA, `#e41a1c` = 0, `#377eb8` = 1), gcol = RColorBrewer::brewer.pal(8,
+  "Set3"), ggroups = TRUE)
 
 vis_all(sheet_names = NULL, skip_sheets = NULL, overwrite = FALSE, ...)
 }

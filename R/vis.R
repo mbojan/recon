@@ -35,7 +35,7 @@ make_net <- function(d)
   d[vnames] <- lapply(d[vnames], function(x) gsub("[^0-9,]", "", x))
   # wspolpraca
   adjlist_wspolpraca <- lapply(strsplit(d$wspolpracownicy, ","), as.numeric)
-  vdb <- subset(d, select=c("ego", "kolor", "ksztalt", "frame"))
+  vdb <- subset(d, select=c("ego", "kolor", "ksztalt", "kasa", "plec"))
   edb <- alist_to_elist(d$ego, adjlist_wspolpraca)
   edb$typ <- rep("wspolpraca", nrow(edb))
   # slave-master
@@ -54,8 +54,8 @@ get_data <- function(sheet)
 {
   # Wczytanie
   obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
-  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,7))))
-  names(d) <- c("ego", "kolor", "ksztalt", "frame", "grupa", "wspolpracownicy", "boss")
+  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,8))))
+  names(d) <- c("ego", "kolor", "ksztalt", "kasa", "grupa", "wspolpracownicy", "boss", "plec")
   d
 }
 
@@ -78,9 +78,9 @@ get_data <- function(sheet)
 vis_net <- function(g, 
                     vid=V(g),
                     gid="all",
-                    vcol=c("#e41a1c", "#ffff33", "#377eb8", "white"),
+                    vcol = c("#66c2a5", "yellow", "#8da0cb", "white"),
                     vshape=c("circle", "square"),
-                    vframe=c("black", "#4daf4a"),
+                    vframe=c("black"=NA, "#e41a1c"=0, "#377eb8"=1),
                     gcol = RColorBrewer::brewer.pal(8, "Set3"),
                     ggroups = TRUE )
 {
@@ -97,7 +97,7 @@ vis_net <- function(g,
     grupy <- grupy[as.character(gid)]
   }
   # rys!
-  igraph::V(g)$frame[ is.na(igraph::V(g)$frame) ] <- 1
+  igraph::V(g)$kasa[ is.na(igraph::V(g)$kasa) ] <- 0
   igraph::V(g)$kolor[ is.na(igraph::V(g)$kolor) ] <- 1
   igraph::V(g)$ksztalt[ is.na(igraph::V(g)$ksztalt) ] <- 1
   # add ties within groups just for layout comp
@@ -116,19 +116,23 @@ vis_net <- function(g,
   # czy rysujemy jakieś grupy
   if(identical(gid, "none"))
   {
-    igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3,
+    igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3, edge.width=2,
                         edge.color="black")
   } else {
     igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3,
-         edge.color="black", mark.groups=grupy, 
+         edge.color="black", mark.groups=grupy, edge.width=2,
          mark.col=adjustcolor(gcol[as.numeric(names(grupy))], alpha.f=0.3),
          mark.border=adjustcolor(gcol[as.numeric(names(grupy))], alpha.f=1) )
   }
-  igraph::plot.igraph(gw, layout=lay, add=TRUE, edge.color="red", edge.width=3,
+  igraph::plot.igraph(gw, layout=lay, add=TRUE, edge.color="black", edge.width=3,
                       vertex.color=vcol[igraph::V(gw)$kolor],
                       vertex.shape=vshape[igraph::V(gw)$ksztalt],
                       vertex.size=ifelse(igraph::V(g)$kolor == 4, 25, 15),
-                      vertex.frame.color=vframe[igraph::V(gw)$frame] )
+                      vertex.label.font=ifelse(igraph::V(g)$kasa == 1, 2, 1),
+                      # vertex.label.family="sans",
+                      vertex.frame.width=ifelse(is.na(V(g)$plec), 1, 4),
+                      vertex.frame.color=nameplace(igraph::V(gw)$plec, vframe)
+                      )
 }
 
 
@@ -208,3 +212,12 @@ alist_to_elist <- function(ego, adjlist)
   as.data.frame(rval)
 }
 
+
+# replace values using by a named vector
+nameplace <- function(x, v)
+{
+  w <- unique(x) %in% v
+  if(!all(w)) stop("don't know how to draw", x[!w])
+  mv <- match(x, v)
+  names(v)[mv]
+}
