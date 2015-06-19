@@ -33,9 +33,17 @@ make_net <- function(d)
   # fix adjlists
   vnames <- c("grupa", "wspolpracownicy", "boss")
   d[vnames] <- lapply(d[vnames], function(x) gsub("[^0-9,]", "", x))
+  vdb <- subset(d, select=c("ego", "kolor", "ksztalt", "kasa", "plec", "grupa"))
+  # grupy
+  glist <- strsplit(vdb$grupa, ",")
+  gu <- na.omit(unique(unlist(glist)))
+  grupy <- lapply(gu, function(gid) sapply(glist, function(x) gid %in% x))
+  names(grupy) <- gu
+  gmatrix <- as.data.frame(do.call("cbind", grupy), stringsAsFactors=FALSE)
+  names(gmatrix) <- paste0("grupa_", gu)
+  vdb <- cbind(vdb, gmatrix)
   # wspolpraca
   adjlist_wspolpraca <- lapply(strsplit(d$wspolpracownicy, ","), as.numeric)
-  vdb <- subset(d, select=c("ego", "kolor", "ksztalt", "kasa", "plec"))
   edb <- alist_to_elist(d$ego, adjlist_wspolpraca)
   edb$typ <- rep("wspolpraca", nrow(edb))
   # slave-master
@@ -44,19 +52,29 @@ make_net <- function(d)
   bossedb$typ <- rep("boss", nrow(bossedb))
   edb <- rbind(edb, bossedb)
   rval <- igraph::graph.data.frame(edb, vertices=vdb, directed=TRUE)
-  igraph::V(rval)$grupa <- d$grupa
   rval
 }
 
 
 
-get_data <- function(sheet)
+get_data <- function(sheets)
 {
   # Wczytanie
   obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
-  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,8))))
-  names(d) <- c("ego", "kolor", "ksztalt", "kasa", "grupa", "wspolpracownicy", "boss", "plec")
-  d
+  rval <- lapply(sheets, function(sheet)
+                 {
+                   d <- googlesheets::gs_reshape_cellfeed( googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,8))))
+                   names(d) <- c("ego", "kolor", "ksztalt", "kasa", "grupa",
+                                 "wspolpracownicy", "boss", "plec")
+                   d
+                 } )
+  names(rval) <- sheets
+  if( length(rval) == 1 )
+  {
+    return(rval[[1]])
+  } else {
+    return(rval)
+  }
 }
 
 
@@ -78,34 +96,37 @@ get_data <- function(sheet)
 vis_net <- function(g, 
                     vid=V(g),
                     gid="all",
+                    gmark="all",
                     vcol = c("#66c2a5", "yellow", "#8da0cb", "white"),
                     vshape=c("mbcircle", "mbsquare"),
                     vframe=c("black"=NA, "#e41a1c"=0, "#377eb8"=1),
                     gcol = RColorBrewer::brewer.pal(8, "Set3"),
-                    ggroups = TRUE )
+                    ggroups = gmark != "none" )
 {
-  # subset if necessary
   register_vertex_shapes()
-  g <- induced.subgraph(g, vids=vid)
-  # grupy
-  l <- strsplit(igraph::V(g)$grupa, ",")
-  u <- na.omit(unique(unlist(l)))
-  grupy <- lapply(u, function(gid) which(sapply(l, function(x) gid %in% x)))
-  names(grupy) <- u
-  # group selection
-  if(is.numeric(gid))
+  # subset if necessary using groups
+  if( is.numeric(gid) )
   {
-    grupy <- grupy[as.character(gid)]
+    gnames <- paste0("grupa_", gid)
+    found <- gnames %in% igraph::list.vertex.attributes(g)
+    if(!all(found)) stop("can't find group", gid[!found])
+    gs <- as.data.frame(sapply(gnames, function(n) igraph::get.vertex.attribute(g, n)))
+    vid_g <- which(apply(gs, 1, any))
+    v <- setdiff(vid, vid_g)
+  } else {
+    v <- vid
   }
+  g <- induced.subgraph(g, vids=v)
   # rys!
   igraph::V(g)$kasa[ is.na(igraph::V(g)$kasa) ] <- 0
   igraph::V(g)$kolor[ is.na(igraph::V(g)$kolor) ] <- 1
   igraph::V(g)$ksztalt[ is.na(igraph::V(g)$ksztalt) ] <- 1
   # add ties within groups just for layout comp
-  if(ggroups && !identical(gid, "none"))
+  if(ggroups && !identical(gmark, "none"))
   {
-    memb <- matrix(sapply(l, function(x) u %in% x), length(u), length(l))
-    am <- t(memb) %*% memb
+    gnames <- grep("grupa_", igraph::list.vertex.attributes(g), value=TRUE)
+    memb <- sapply(gnames, function(n) igraph::get.vertex.attribute(g, n))
+    am <- memb %*% t(memb)
     colnames(am) <- rownames(am) <- V(g)$name
     lg <- igraph::simplify(igraph::graph.union(g, igraph::graph.adjacency(am)))
     lay <- igraph::layout.fruchterman.reingold(lg)
@@ -115,12 +136,16 @@ vis_net <- function(g,
   gb <- igraph::delete.edges(g, igraph::E(g)[typ != "boss"])
   gw <- igraph::simplify(igraph::as.undirected(igraph::delete.edges(g, igraph::E(g)[typ == "boss"])))
   # czy rysujemy jakieś grupy
-  if(identical(gid, "none"))
+  if(identical(gmark, "none"))
   {
     igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3, edge.width=2,
                       vertex.size=ifelse(igraph::V(g)$kolor == 4, 25, 15),
                         edge.color="black")
   } else {
+    gnames <- grep("grupa_", igraph::list.vertex.attributes(g), value=TRUE)
+    glist <- lapply(gnames, function(n) igraph::get.vertex.attribute(g, n))
+    grupy <- lapply(glist, which)
+    names(grupy) <- gsub("[^0-9]", "", names(grupy))
     igraph::plot.igraph(gb, layout=lay, vertex.shape="none", edge.curved=0.3,
          edge.color="black", mark.groups=grupy, edge.width=2,
                       vertex.size=ifelse(igraph::V(g)$kolor == 4, 25, 15),
