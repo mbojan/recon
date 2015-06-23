@@ -54,7 +54,7 @@ get_data <- function(sheet)
 {
   # Wczytanie
   obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
-  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,8))))
+  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(c(2,1), c(NA,8))))
   names(d) <- c("ego", "kolor", "ksztalt", "kasa", "grupa", "wspolpracownicy", "boss", "plec")
   d
 }
@@ -179,7 +179,7 @@ vis_all <- function(sheet_names=NULL, skip_sheets=NULL, overwrite=FALSE, ...)
       next
     }
     cat("DRAWING ...\n")
-    d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(rows=c(2,NA), cols=c(1,8))))
+    d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(c(2,1), cols=c(NA,8))))
     names(d) <- c("ego", "kolor", "ksztalt", "kasa", "grupa", "wspolpracownicy", "boss", "plec")
     g <- make_net(d)
     png(fname)
