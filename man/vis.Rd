@@ -16,7 +16,8 @@ vis_net(g, vid = V(g), gid = "all", vcol = c("#66c2a5", "yellow",
   = NA, `#e41a1c` = 0, `#377eb8` = 1), gcol = RColorBrewer::brewer.pal(8,
   "Set3"), ggroups = TRUE)
 
-vis_all(sheet_names = NULL, skip_sheets = NULL, overwrite = FALSE, ...)
+vis_all(sheet_names = NULL, skip_sheets = NULL, overwrite = FALSE,
+  verbose = FALSE, ...)
 }
 \arguments{
 \item{sheet}{sheet name}
@@ -46,6 +47,8 @@ vis_all(sheet_names = NULL, skip_sheets = NULL, overwrite = FALSE, ...)
 \item{skip_sheets}{character vector, if \code{sheet_names} is \code{NULL}, sheets with these names will be skipped}
 
 \item{overwrite}{logical redo existing files}
+
+\item{verbose}{logical give verbose output or not}
 }
 \description{
 Download and visualize team networks based on data in a Google Spreadsheet.

@@ -50,11 +50,11 @@ make_net <- function(d)
 
 
 
-get_data <- function(sheet)
+get_data <- function(sheet, verbose=FALSE)
 {
   # Wczytanie
-  obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
-  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(c(2,1), c(NA,8))))
+  obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs", verbose=verbose)
+  d <- googlesheets::gs_reshape_cellfeed(googlesheets::gs_read_cellfeed(obrazki, ws=sheet, range=googlesheets::cell_limits(c(2,1), c(NA,8)), verbose=verbose))
   names(d) <- c("ego", "kolor", "ksztalt", "kasa", "grupa", "wspolpracownicy", "boss", "plec")
   d
 }
@@ -147,10 +147,11 @@ vis_net <- function(g,
 #' @param sheet_names names of GS sheet names to visualize, if \code{NULL} draws all \code{WF} and \code{DC} sheets with numbers 1 to 15. Single character element (e.g. \code{"WF"}) is interpreted as a regular expression to search through sheet names
 #' @param skip_sheets character vector, if \code{sheet_names} is \code{NULL}, sheets with these names will be skipped
 #' @param overwrite logical redo existing files
+#' @param verbose logical give verbose output or not
 #'
 #' @rdname vis
 #' @export
-vis_all <- function(sheet_names=NULL, skip_sheets=NULL, overwrite=FALSE, ...)
+vis_all <- function(sheet_names=NULL, skip_sheets=NULL, overwrite=FALSE, verbose=FALSE, ...)
 {
   all_sheets <- c( paste0("WF", sprintf("%02d", 1:15)),
                      paste0("DC", sprintf("%02d", 1:15)) )
@@ -168,7 +169,7 @@ vis_all <- function(sheet_names=NULL, skip_sheets=NULL, overwrite=FALSE, ...)
   {
     sheet_names <- grep(sheet_names, all_sheets, value=TRUE)
   }
-  obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs")
+  obrazki <- googlesheets::gs_key("1IApsDIawqBGH1KuWpo22zJWAbrLJp5ft0oZDUuZ8UOs", verbose=verbose)
   for( sheet in sheet_names )
   {
     cat("Sheet", sheet, "...\n")
