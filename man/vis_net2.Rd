@@ -4,10 +4,12 @@
 \alias{vis_net2}
 \title{Plot IDI2 network}
 \usage{
-vis_net2(g, ...)
+vis_net2(g, show_groups = NULL, ...)
 }
 \arguments{
 \item{g}{igraph object}
+
+\item{show_groups}{numeric, ids of groups to display. Alternatively, NULL for all, NA for none,}
 
 \item{...}{passed to plot.igraph}
 }

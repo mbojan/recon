@@ -78,17 +78,19 @@ make_net2 <- function(d) {
 #' Plot IDI2 network
 #'
 #' @param g igraph object
+#' @param show_groups numeric, ids of groups to display. Alternatively, NULL for all, NA for none, 
 #' @param ... passed to plot.igraph
 #'
 #' @return nothing
 #' @export
-vis_net2 <- function(g, ...) {
+vis_net2 <- function(g, show_groups=NULL, ...) {
   plot(
     g,
     edge.curved=0.2,
     edge.arrow.size=0.5,
     edge.label=E(g)$res,
     edge.label.cex=0.7,
+    main = g$idi_id,
     ...
   )
 }
@@ -100,3 +102,14 @@ vis_net2 <- function(g, ...) {
 #   geom_edges(curvature=0.1) +
 #   geom_edgetext_repel(aes(label=res), box.padding = unit(1, "lines")) +
 #   theme_minimal()
+
+if(FALSE) {
+  xlsx <- system.file("exdata", "resources.xlsx", package="recon")
+  dlist <- get_data2(xlsx)
+  glist <- lapply(dlist, make_net2)
+  pdf("sieci2.pdf")
+  for(d in dlist) {
+    plot(make_net2(d))
+  }
+  dev.off()
+}
