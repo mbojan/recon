@@ -1,1 +1,3 @@
 R/team_vis.R
+^.*\.Rproj$
+^\.Rproj\.user$
