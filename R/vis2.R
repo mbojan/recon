@@ -48,19 +48,22 @@ make_net2 <- function(d) {
   # Vertex DB
   vdb <- data.frame(
     id=d$Nr.wezła.2,
-    grupa = gsub("[^0-9,]", "", d$Przynależność.do.grup..na.podstawie.zdjęcie..grupa.może.być.też.dwuosobowa.)
+    grupa = gsub("[^0-9,]", "", d$Przynależność.do.grup..na.podstawie.zdjęcie..grupa.może.być.też.dwuosobowa.),
+    stringsAsFactors = FALSE
   )
   # Edge DB
   edb <- rbind(
     data.frame(
       ego = d$Nr.wezła.1,
       alter = d$Nr.wezła.2,
-      res = gsub("[^0-9,]", "", d$Kategoria.zasobów.pzekazanych)
+      res = gsub("[^0-9,]", "", d$Kategoria.zasobów.pzekazanych),
+      stringsAsFactors = FALSE
     ),
     data.frame(
       ego = d$Nr.wezła.2,
       alter = d$Nr.wezła.1,
-      res = gsub("[^0-9,]", "", d$Kategorie.zasobów.otrzymanych)
+      res = gsub("[^0-9,]", "", d$Kategorie.zasobów.otrzymanych),
+      stringsAsFactors = FALSE
     )
   )
   edb <- subset(edb, ego != alter)

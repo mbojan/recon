@@ -14,6 +14,6 @@ test_that("get_data2 gets all sheets", {
 context("Testing make_net2")
 
 test_that("make_data2 works at all", {
-  d <- get_data2(xlsx)
+  d <- get_data2(xlsx, sheet="DC15KRA")
   g <- make_net2(d)
 })
