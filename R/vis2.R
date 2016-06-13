@@ -72,3 +72,31 @@ make_net2 <- function(d) {
   g$idi_id <- attr(d, "idi_id")
   g
 }
+
+
+
+#' Plot IDI2 network
+#'
+#' @param g igraph object
+#' @param ... passed to plot.igraph
+#'
+#' @return nothing
+#' @export
+vis_net2 <- function(g, ...) {
+  plot(
+    g,
+    edge.curved=0.2,
+    edge.arrow.size=0.5,
+    edge.label=E(g)$res,
+    edge.label.cex=0.7,
+    ...
+  )
+}
+
+# library(ggnetwork)
+
+# g %>% asNetwork() %>% ggplot(aes(x=x, y=y, xend=xend, yend=yend)) +
+#   geom_nodes() +
+#   geom_edges(curvature=0.1) +
+#   geom_edgetext_repel(aes(label=res), box.padding = unit(1, "lines")) +
+#   theme_minimal()
