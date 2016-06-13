@@ -6,7 +6,7 @@
 #' @param sheet numeric/character, index number of name of the sheet(s) to be loaded
 #' @param ... other arguments passed to \code{\link{readWorksheet}}
 #'
-#' @return
+#' @return Data frame or list thereof.
 #' @export
 get_data2 <- function(file, sheet=NULL, ...) {
   wb <- XLConnect::loadWorkbook(filename=file)
@@ -26,19 +26,11 @@ get_data2 <- function(file, sheet=NULL, ...) {
   }
   # Get
   if( length(toget) == 1) {
-    rval <- XLConnect::readWorksheet(wb, sheet=i, ...)
+    rval <- XLConnect::readWorksheet(wb, sheet=toget, ...)
     return(rval)
   } else {
     rval <- lapply(toget, function(i) XLConnect::readWorksheet(wb, sheet=i, ...))
     names(rval) <- sheet_names[toget]
     return(rval)
   }
-}
-
-
-
-
-
-make_net2 <- function(d) {
-  
 }
