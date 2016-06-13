@@ -9,7 +9,11 @@ Depends:
     R (>= 3.2.0),
     igraph
 Imports:
-    googlesheets
+    googlesheets,
+    XLConnect,
+    graphics,
+    grDevices
+Suggests: testthat
 License: GPL-2
 LazyData: true
 RoxygenNote: 5.0.1

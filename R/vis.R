@@ -74,6 +74,9 @@ get_data <- function(sheet, verbose=FALSE)
 #'
 #' @rdname vis
 #' @import igraph
+#' @importFrom grDevices adjustcolor dev.off png
+#' @importFrom graphics par symbols
+#' @importFrom stats na.omit
 #' @export
 vis_net <- function(g, 
                     vid=V(g),
