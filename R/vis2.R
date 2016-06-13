@@ -25,9 +25,11 @@ get_data2 <- function(file, sheet=NULL, ...) {
   # Get
   if( length(toget) == 1) {
     rval <- XLConnect::readWorksheet(wb, sheet=i, ...)
+    return(rval)
   } else {
     rval <- lapply(toget, function(i) XLConnect::readWorksheet(wb, sheet=i, ...))
     names(rval) <- sheet_names[toget]
+    return(rval)
   }
 }
 
