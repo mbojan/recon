@@ -1,4 +1,6 @@
-#' Get data from downloaded XLSX
+#' Get data from downloaded XLSX from IDI2
+#' 
+#' By default retrieves all sheets from interviews and returns a list of data frames.
 #'
 #' @param file character, XLSX file with data
 #' @param sheet numeric/character, index number of name of the sheet(s) to be loaded
